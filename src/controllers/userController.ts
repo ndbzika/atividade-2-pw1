@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { userService } from "../services/userService";
-import { randomUUID } from "crypto";
+import { v4 as uuid } from "uuid";
 
 const index = (req: Request, res: Response) => {
   const users = userService.findAllUsers();
@@ -16,7 +16,7 @@ const show = (req: Request, res: Response) => {
 const store = (req: Request, res: Response) => {
   const { name, username, technologies } = req.body;
   const user = {
-    id: randomUUID(),
+    id: uuid(),
     name,
     username,
     technologies: technologies || [],

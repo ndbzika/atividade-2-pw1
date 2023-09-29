@@ -4,7 +4,7 @@ import { userController } from "../controllers/userController";
 
 const router = Router();
 
-router.get("/", checkExistsUserAccount, userController.index);
+router.get("/", userController.index);
 router.post("/", userController.store);
 router.get("/:username", checkExistsUserAccount, userController.show);
 
