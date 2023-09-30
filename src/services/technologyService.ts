@@ -3,10 +3,6 @@ import { TechnologyDTO } from "../dtos/technologiesDTO";
 import { userService } from "./userService";
 
 const TechnologyExists = (id: string, username: string) => {
-  const user = userService.UserExists(username);
-  if (!user) {
-    return false;
-  }
   const technology = findTechnology(id, username);
   if (!technology) {
     return false;
@@ -26,19 +22,17 @@ const findTechnology = (id: string, username: string) => {
 };
 
 const findAllTechnologies = (username: string) => {
-  if (!userService.UserExists(username)) {
-    return false;
-  }
   const user = userService.findUserByUsername(username);
   return user?.technologies;
 };
 
 const createTechnology = (username: string, technology: TechnologyDTO) => {
-  if (!userService.UserExists(username)) {
+  if (TechnologyExists(technology.id, username)) {
     return false;
   }
   const user = userService.findUserByUsername(username);
   user?.technologies.push(technology);
+  return true;
 };
 
 const updateTechnology = (
@@ -47,26 +41,20 @@ const updateTechnology = (
   title: string,
   deadline: Date
 ) => {
-  if (!userService.UserExists(username)) {
-    return false;
-  }
   const user = userService.findUserByUsername(username);
   if (!TechnologyExists(id, username)) {
     return false;
   }
-  const tech = user?.technologies.map((tech) => {
+  user?.technologies.map((tech) => {
     if (tech.id === id) {
       tech.title = title || tech.title;
       tech.deadline = deadline || tech.deadline;
     }
   });
-  return tech;
+  return true;
 };
 
 const updateTechnologyStatus = (username: string, id: string) => {
-  if (!userService.UserExists(username)) {
-    return false;
-  }
   const user = userService.findUserByUsername(username);
   if (!TechnologyExists(id, username)) {
     return false;
@@ -80,9 +68,6 @@ const updateTechnologyStatus = (username: string, id: string) => {
 };
 
 const deleteTechnology = (username: string, id: string) => {
-  if (!userService.UserExists(username)) {
-    return false;
-  }
   const user = userService.findUserByUsername(username);
   if (!TechnologyExists(id, username)) {
     return false;
@@ -90,6 +75,7 @@ const deleteTechnology = (username: string, id: string) => {
   const technology = findTechnology(id, username);
   const index = user?.technologies.indexOf(technology as TechnologyDTO);
   user?.technologies.splice(index!, 1);
+  return true;
 };
 
 export const technologyService = {

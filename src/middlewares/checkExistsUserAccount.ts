@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { userService } from "../services/userService";
+import { NotFoundError } from "../helpers/api-errors";
 
 export const checkExistsUserAccount = (
   req: Request,
@@ -9,7 +10,7 @@ export const checkExistsUserAccount = (
   const { username } = req.headers;
   const user = userService.findUserByUsername(username as string);
   if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    throw new NotFoundError("User not found");
   }
   next();
 };

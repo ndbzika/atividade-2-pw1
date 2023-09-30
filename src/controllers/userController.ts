@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { userService } from "../services/userService";
 import { v4 as uuid } from "uuid";
+import { BadRequestError } from "../helpers/api-errors";
 
 const index = (req: Request, res: Response) => {
   const users = userService.findAllUsers();
@@ -21,7 +22,10 @@ const store = (req: Request, res: Response) => {
     username,
     technologies: technologies || [],
   };
-  userService.createUser(user);
+  const createdUser = userService.createUser(user);
+  if (!createdUser) {
+    throw new BadRequestError("User already exists");
+  }
   return res.status(201).json(user);
 };
 

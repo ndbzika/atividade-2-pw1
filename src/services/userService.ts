@@ -30,27 +30,10 @@ const createUser = (user: UserDTO) => {
   return true;
 };
 
-const updateUser = (id: string, user: UserDTO) => {
-  if (!UserExists(user.username)) {
-    return false;
-  }
-  const index = db.findIndex((currentId) => currentId.id === id);
-  db[index] = user;
-  return true;
-};
-
-const deleteUser = (id: string) => {
-  const index = db.findIndex((currentId) => currentId.id === id);
-  db.splice(index, 1);
-  return true;
-};
-
 export const userService = {
   UserExists,
   findUserById,
   findUserByUsername,
   findAllUsers,
   createUser,
-  updateUser,
-  deleteUser,
 };

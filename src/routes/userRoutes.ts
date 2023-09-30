@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { checkExistsUserAccount } from "../utils/checkExistsUserAccount";
+import { checkExistsUserAccount } from "../middlewares/checkExistsUserAccount";
 import { userController } from "../controllers/userController";
 
 const router = Router();
