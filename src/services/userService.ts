@@ -26,6 +26,9 @@ const UserExists = (username: string) => {
 };
 
 const createUser = (user: UserDTO) => {
+  if (UserExists(user.username)) {
+    return false;
+  }
   db.push(user);
   return true;
 };

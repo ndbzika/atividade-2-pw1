@@ -11,13 +11,13 @@ const TechnologyExists = (id: string, username: string) => {
 };
 
 const findTechnology = (id: string, username: string) => {
-  if (!TechnologyExists(id, username)) {
-    return false;
-  }
   const user = userService.findUserByUsername(username);
   const technology = db.find(() =>
     user?.technologies.find((technology: TechnologyDTO) => technology.id === id)
   );
+  if (!technology) {
+    return false;
+  }
   return technology as unknown as TechnologyDTO;
 };
 
@@ -32,7 +32,7 @@ const createTechnology = (username: string, technology: TechnologyDTO) => {
   }
   const user = userService.findUserByUsername(username);
   user?.technologies.push(technology);
-  return true;
+  return user;
 };
 
 const updateTechnology = (
