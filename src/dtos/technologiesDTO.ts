@@ -4,5 +4,10 @@ export interface TechnologyDTO {
   studied: boolean;
   deadline: Date;
   createdAt: Date;
-  userId: string;
+  userId?: string;
+}
+
+export interface PostTechnologyDTO {
+  title: string;
+  deadline: Date;
 }

@@ -1,81 +1,127 @@
-import { db } from "../database/db";
-import { TechnologyDTO } from "../dtos/technologiesDTO";
+import { PrismaClient } from "@prisma/client";
+import { PostTechnologyDTO, TechnologyDTO } from "../dtos/technologiesDTO";
 import { userService } from "./userService";
+import { InternalServerError, NotFoundError } from "../helpers/api-errors";
 
-const TechnologyExists = (id: string, username: string) => {
-  const technology = findTechnology(id, username);
+const prisma = new PrismaClient();
+
+const TechnologyExists = async (id: string, username: string) => {
+  const technology = await findTechnology(id, username);
   if (!technology) {
     return false;
   }
   return true;
 };
 
-const findTechnology = (id: string, username: string) => {
-  const user = userService.findUserByUsername(username);
-  const technology = db.find(() =>
-    user?.technologies.find((technology: TechnologyDTO) => technology.id === id)
-  );
+const findTechnology = async (id: string, username: string) => {
+  const user = await userService.findUserByUsername(username);
+  const technology = await prisma.technology.findUnique({
+    where: {
+      id,
+      userId: user?.id,
+    },
+  });
   if (!technology) {
-    return false;
+    throw new NotFoundError("Technology Not Found");
   }
-  return technology as unknown as TechnologyDTO;
+  return technology as TechnologyDTO;
 };
 
-const findAllTechnologies = (username: string) => {
-  const user = userService.findUserByUsername(username);
-  return user?.technologies;
+const findAllTechnologies = async (username: string) => {
+  const user = await userService.findUserByUsername(username);
+  const technologies = await prisma.technology.findMany({
+    where: {
+      userId: user?.id,
+    },
+  });
+
+  return technologies as TechnologyDTO[];
 };
 
-const createTechnology = (username: string, technology: TechnologyDTO) => {
-  if (TechnologyExists(technology.id, username)) {
-    return false;
+const createTechnology = async (
+  username: string,
+  technology: PostTechnologyDTO
+) => {
+  const user = await userService.findUserByUsername(username);
+  const newTechnology = await prisma.technology.create({
+    data: {
+      title: technology.title,
+      studied: false,
+      deadline: new Date(technology.deadline),
+      userId: user?.id,
+    },
+  });
+
+  if (!newTechnology) {
+    console.log(newTechnology);
+    throw new InternalServerError("Internal Server Error");
   }
-  const user = userService.findUserByUsername(username);
-  user?.technologies.push(technology);
-  return user;
+  return newTechnology;
 };
 
-const updateTechnology = (
+const updateTechnology = async (
   username: string,
   id: string,
-  title: string,
-  deadline: Date
+  title?: string,
+  deadline?: Date
 ) => {
-  const user = userService.findUserByUsername(username);
-  if (!TechnologyExists(id, username)) {
-    return false;
+  const user = await userService.findUserByUsername(username);
+  if (!(await TechnologyExists(id, username))) {
+    throw new NotFoundError("Technology Not Found");
   }
-  user?.technologies.map((tech) => {
-    if (tech.id === id) {
-      tech.title = title || tech.title;
-      tech.deadline = deadline || tech.deadline;
-    }
+  const technology = await findTechnology(id, username);
+  const updatedTechnology = await prisma.technology.update({
+    where: {
+      id,
+      userId: user?.id,
+    },
+    data: {
+      title: title || technology?.title,
+      deadline: new Date(deadline!) || technology?.deadline,
+    },
   });
-  return true;
+  if (!updatedTechnology) {
+    throw new InternalServerError("Internal Server Error");
+  }
+  return updatedTechnology;
 };
 
-const updateTechnologyStatus = (username: string, id: string) => {
-  const user = userService.findUserByUsername(username);
-  if (!TechnologyExists(id, username)) {
-    return false;
+const updateTechnologyStatus = async (username: string, id: string) => {
+  const user = await userService.findUserByUsername(username);
+  if (!(await TechnologyExists(id, username))) {
+    throw new NotFoundError("Technology Not Found");
   }
-  user?.technologies.map((tech: TechnologyDTO) => {
-    if (tech.id === id) {
-      tech.studied = true;
-    }
+  const technology = await findTechnology(id, username);
+  const updatedTechnology = await prisma.technology.update({
+    where: {
+      id,
+      userId: user?.id,
+    },
+    data: {
+      studied: !technology?.studied,
+    },
   });
-  return true;
+  if (!updatedTechnology) {
+    throw new InternalServerError("Internal Server Error");
+  }
+  return updatedTechnology;
 };
 
-const deleteTechnology = (username: string, id: string) => {
-  const user = userService.findUserByUsername(username);
-  if (!TechnologyExists(id, username)) {
-    return false;
+const deleteTechnology = async (username: string, id: string) => {
+  const user = await userService.findUserByUsername(username);
+  if (!(await TechnologyExists(id, username))) {
+    throw new NotFoundError("Technology Not Found");
   }
-  const technology = findTechnology(id, username);
-  const index = user?.technologies.indexOf(technology as TechnologyDTO);
-  user?.technologies.splice(index!, 1);
-  return true;
+  const deletedTechnology = await prisma.technology.delete({
+    where: {
+      id,
+      userId: user?.id,
+    },
+  });
+  if (!deletedTechnology) {
+    throw new InternalServerError("Internal Server Error");
+  }
+  return deletedTechnology;
 };
 
 export const technologyService = {

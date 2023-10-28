@@ -1,36 +1,67 @@
-import { db } from "../database/db";
+import { PrismaClient } from "@prisma/client";
 import { UserDTO } from "../dtos/userDTO";
+import {
+  BadRequestError,
+  InternalServerError,
+  NotFoundError,
+} from "../helpers/api-errors";
 
-const findUserById = (id: string) => {
-  const user = db.find((currentId) => currentId.id === id);
+const prisma = new PrismaClient();
+
+const findUserById = async (id: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
+  if (!user) {
+    throw new InternalServerError("Internal Server Error");
+  }
   return user;
 };
 
-const findUserByUsername = (username: string) => {
-  const user = db.find(
-    (currentUsername) => currentUsername.username === username
-  );
+const findUserByUsername = async (username: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      username,
+    },
+  });
+  if (!user) {
+    throw new NotFoundError("User Not Found");
+  }
   return user;
 };
 
-const findAllUsers = () => {
-  return db;
+const findAllUsers = async () => {
+  return await prisma.user.findMany();
 };
 
-const UserExists = (username: string) => {
-  const user = findUserByUsername(username);
+const UserExists = async (username: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      username,
+    },
+  });
   if (user) {
     return true;
   }
   return false;
 };
 
-const createUser = (user: UserDTO) => {
-  if (UserExists(user.username)) {
-    return false;
+const createUser = async (user: UserDTO) => {
+  if (await UserExists(user.username)) {
+    throw new BadRequestError("User Already Exists");
   }
-  db.push(user);
-  return true;
+  const newUser = await prisma.user.create({
+    data: {
+      username: user.username,
+      name: user.name,
+    },
+  });
+  if (!newUser) {
+    throw new InternalServerError("Internal Server Error");
+  }
+  return newUser;
 };
 
 export const userService = {

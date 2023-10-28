@@ -1,3 +1,4 @@
+import "express-async-errors";
 import express from "express";
 import userRoutes from "./routes/userRoutes";
 import technologyRoutes from "./routes/technologyRoutes";
