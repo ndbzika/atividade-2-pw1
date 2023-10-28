@@ -1,7 +1,8 @@
-export type TechnologyDTO = {
+export interface TechnologyDTO {
   id: string;
   title: string;
   studied: boolean;
   deadline: Date;
-  created_at: Date;
-};
+  createdAt: Date;
+  userId: string;
+}

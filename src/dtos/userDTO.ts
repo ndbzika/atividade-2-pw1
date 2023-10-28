@@ -1,8 +1,5 @@
-import { TechnologyDTO } from "./technologiesDTO";
-
-export type UserDTO = {
+export interface UserDTO {
   id: string;
   name: string;
   username: string;
-  technologies: TechnologyDTO[];
-};
+}
